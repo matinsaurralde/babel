@@ -1,0 +1,101 @@
+# Babel
+
+**Dictation for macOS that never leaves your Mac.**
+
+Hold a key. Speak. Release. The text appears in whatever app you're in — browser, terminal, code editor, Slack. No cloud. No telemetry. No account. No subscription.
+
+Built natively for macOS 26 Tahoe: Apple **SpeechAnalyzer** for on-device transcription, native **Liquid Glass** for the UI, and the **Apple Neural Engine** doing the work your M-series chip was designed for.
+
+```
+hold ⌥            speak            release
+   ┌──────────────────────────────────────┐
+   │  ●  Listening…                       │   ← floats over every app
+   └──────────────────────────────────────┘
+```
+
+## Why "Babel"
+
+Jorge Luis Borges — the Argentine writer — imagined a library containing *every possible book*: every combination of letters, every text that has been written or ever could be. Babel — the dictation app — is a narrower version of that library: every word **you** are about to say, turned into text you can place anywhere, on a machine that forgets the audio the moment it's done with it.
+
+## Why another dictation app
+
+| | Babel | Superwhisper | Wispr Flow | Apple Dictation |
+|---|:---:|:---:|:---:|:---:|
+| On-device only | ✓ | ✓ | ✗ (cloud) | ✓ |
+| Open source | ✓ (MIT) | ✗ | ✗ | ✗ |
+| Free | ✓ | $15/mo | $12/mo | ✓ |
+| Works in any app | ✓ | ✓ | ✓ | partial |
+| Latency | <400 ms | ~600 ms | ~1 s | ~500 ms |
+| Liquid Glass UI | ✓ | mimicked | ✗ | — |
+
+**Privacy is a design decision, not a checkbox.** Babel has no server. No opt-out telemetry — because there is nothing to opt out of. The mic audio flows into Apple's on-device `SpeechAnalyzer`, produces a string, gets inserted into the focused app, and is gone. We don't even keep the audio in memory past the session.
+
+**Speed is the other pillar.** Push-to-hold gives you one modal gesture. Transcription streams in the background while you're speaking so the final text is ready the instant you release the key. Apple's SpeechAnalyzer on M-series hits ~45 ms/sec of audio — the bottleneck is now how fast you talk.
+
+## Status
+
+**Pre-alpha.** macOS 26 Tahoe and later only. Three modes:
+
+- **Fast** — Apple SpeechAnalyzer, no post-processing
+- **Balanced** — SpeechAnalyzer with partial-result streaming
+- **Accurate** — WhisperKit `large-v3-turbo` *(landing in v1.0)*
+
+v1.1 will add local LLM post-processing via [Ollama](https://ollama.com) for grammar cleanup and custom vocabulary. v1.2 will add optional BYOK routing to OpenAI / Groq / Cohere for users who want cloud-fast.
+
+## Build from source
+
+```bash
+brew install xcodegen
+git clone https://github.com/matinsaurralde/babel.git
+cd babel
+xcodegen generate
+open Babel.xcodeproj
+```
+
+Or from the command line:
+
+```bash
+xcodegen generate
+xcodebuild -project Babel.xcodeproj -scheme Babel -configuration Debug build
+open ~/Library/Developer/Xcode/DerivedData/Babel-*/Build/Products/Debug/Babel.app
+```
+
+Requires **Xcode 26** and **macOS 26** (Tahoe).
+
+## Permissions
+
+Four, all native macOS:
+
+| Permission | Used for |
+|---|---|
+| Microphone | capture your voice |
+| Speech Recognition | run Apple SpeechAnalyzer on-device |
+| Input Monitoring | detect the global push-to-hold hotkey |
+| Accessibility | paste the transcript into the focused app |
+
+The first launch walks you through each one. Every permission prompts through macOS' native system — Babel never sees the raw grant.
+
+## Default hotkey
+
+**Hold Right Option** to record. Release to insert. Rebinding arrives with v1.0.
+
+## Design decisions
+
+The important choices live as ADRs in [`docs/decisions/`](./docs/decisions). If you're wondering "why did they do X instead of Y", that's where to look. Start with:
+
+- [001 — macOS 26 only, no fallbacks](./docs/decisions/001-macos-26-only.md)
+- [002 — Apple SpeechAnalyzer as the default engine](./docs/decisions/002-speechanalyzer-default.md)
+- [003 — Push-to-hold over press-to-toggle](./docs/decisions/003-push-to-hold.md)
+- [004 — Hybrid AX + paste text insertion](./docs/decisions/004-hybrid-insertion.md)
+
+## Contributing
+
+Babel is MIT-licensed and built in public. Issues and PRs welcome. If you're proposing a non-trivial change, please sketch an ADR in `docs/decisions/` so the discussion stays in the repo.
+
+## License
+
+MIT — see [LICENSE](./LICENSE).
+
+---
+
+*Privacy and speed, by design. — Buenos Aires, 2026*

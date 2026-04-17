@@ -1,0 +1,53 @@
+name: Babel
+options:
+  bundleIdPrefix: com.babel
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+  defaultConfig: Debug
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+    ENABLE_HARDENED_RUNTIME: YES
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_STRICT_CONCURRENCY: complete
+    GCC_WARN_UNINITIALIZED_AUTOS: YES
+    CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION: YES
+
+targets:
+  Babel:
+    type: application
+    platform: macOS
+    sources:
+      - path: Babel
+    info:
+      path: Babel/Resources/Info.generated.plist
+      properties:
+        CFBundleName: Babel
+        CFBundleDisplayName: Babel
+        CFBundleIdentifier: com.babel.app
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        CFBundlePackageType: APPL
+        LSMinimumSystemVersion: "26.0"
+        LSUIElement: true
+        NSMicrophoneUsageDescription: "Babel needs microphone access to transcribe your voice into text on-device."
+        NSSpeechRecognitionUsageDescription: "Babel uses Apple's on-device SpeechAnalyzer to turn your voice into text. Audio never leaves your Mac."
+        NSHumanReadableCopyright: "© 2026 Babel Contributors. MIT License."
+        NSPrincipalClass: NSApplication
+    entitlements:
+      path: Babel/Resources/Babel.entitlements
+      properties:
+        com.apple.security.device.audio-input: true
+        com.apple.security.automation.apple-events: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.babel.app
+        PRODUCT_NAME: Babel
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
