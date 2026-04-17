@@ -7,6 +7,10 @@ struct MenuBarContent: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            if !Permissions.allGranted() {
+                permissionBanner
+                Divider().padding(.vertical, 6)
+            }
             header
             Divider().padding(.vertical, 6)
             modePicker
@@ -14,7 +18,33 @@ struct MenuBarContent: View {
             actions
         }
         .padding(10)
-        .frame(width: 280)
+        .frame(width: 300)
+    }
+
+    private var permissionBanner: some View {
+        Button {
+            openWindow(id: BabelWindows.onboardingID)
+            NSApp.activate(ignoringOtherApps: true)
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Permissions required")
+                        .font(.system(.subheadline, weight: .semibold))
+                    Text("Click to open the onboarding window")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+            .padding(10)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.orange.opacity(0.15))
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var header: some View {

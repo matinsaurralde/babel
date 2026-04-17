@@ -19,6 +19,8 @@ final class AppCoordinator {
     private var installRetryTask: Task<Void, Never>?
 
     func start() {
+        Self.log.info("permissions: mic=\(String(describing: Permissions.status(for: .microphone)), privacy: .public) speech=\(String(describing: Permissions.status(for: .speechRecognition)), privacy: .public) accessibility=\(String(describing: Permissions.status(for: .accessibility)), privacy: .public) inputMonitoring=\(String(describing: Permissions.status(for: .inputMonitoring)), privacy: .public)")
+
         let pill = PillWindowController(state: state)
         self.pill = pill
 

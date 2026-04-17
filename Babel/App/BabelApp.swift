@@ -21,6 +21,12 @@ struct BabelApp: App {
                 .environment(appDelegate.coordinator.state)
         }
 
+        Window("Welcome to Babel", id: BabelWindows.onboardingID) {
+            OnboardingWindow()
+        }
+        .windowResizability(.contentSize)
+        .defaultSize(width: 560, height: 560)
+
         Window("History", id: BabelWindows.historyID) {
             HistoryView()
         }
@@ -32,20 +38,40 @@ struct BabelApp: App {
 
 enum BabelWindows {
     static let historyID = "babel.history"
+    static let onboardingID = "babel.onboarding"
+}
 
-    /// Opens Settings programmatically (SwiftUI's `Settings` scene). macOS 14+.
-    @MainActor
-    static func openSettings() {
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+/// Hosts `OnboardingView` in its own window (separate from Settings so the
+/// window can be opened programmatically via `openWindow` and activated
+/// reliably for a menu-bar-only app).
+struct OnboardingWindow: View {
+    var body: some View {
+        OnboardingView()
+            .onAppear {
+                NSApp.activate(ignoringOtherApps: true)
+            }
     }
 }
 
 private struct MenuBarLabel: View {
     @Environment(AppState.self) private var state
+    @Environment(\.openWindow) private var openWindow
+    @State private var didCheckPermissions = false
 
     var body: some View {
         Image(systemName: state.isActive ? "waveform.circle.fill" : "waveform.circle")
             .symbolRenderingMode(.hierarchical)
+            .task {
+                // Runs once when the menu-bar label is first rendered — SwiftUI
+                // scenes are registered by then, so openWindow works reliably.
+                guard !didCheckPermissions else { return }
+                didCheckPermissions = true
+                try? await Task.sleep(for: .milliseconds(500))
+                if !Permissions.allGranted() {
+                    openWindow(id: BabelWindows.onboardingID)
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+            }
     }
 }
 
@@ -56,13 +82,5 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         coordinator.start()
-
-        if !Permissions.allGranted() {
-            // Give SwiftUI a moment to register the Settings scene before we open it.
-            Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(400))
-                BabelWindows.openSettings()
-            }
-        }
     }
 }
