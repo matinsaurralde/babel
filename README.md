@@ -57,10 +57,21 @@ Or from the command line:
 ```bash
 xcodegen generate
 xcodebuild -project Babel.xcodeproj -scheme Babel -configuration Debug build
+scripts/resign.sh   # re-sign with your stable Apple Development identity
 open ~/Library/Developer/Xcode/DerivedData/Babel-*/Build/Products/Debug/Babel.app
 ```
 
 Requires **Xcode 26** and **macOS 26** (Tahoe).
+
+### Why the re-sign step?
+
+Xcode's default ad-hoc signature changes on every build, so macOS' TCC
+database treats each rebuild as a different app and revokes every
+permission. `scripts/resign.sh` post-signs the built `.app` with a
+stable Apple Development identity from your login keychain, so the
+code-signature hash is identical across rebuilds and permissions stay
+granted. Set one up once in Xcode → Settings → Accounts → Manage
+Certificates → `+` Apple Development.
 
 ## Permissions
 
