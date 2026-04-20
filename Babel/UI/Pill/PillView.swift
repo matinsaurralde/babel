@@ -31,6 +31,7 @@ struct PillView: View {
         case .listening: .blue
         case .processing: .orange
         case .inserting: .green
+        case .clipboardFallback: .yellow
         case .error: .red
         case .idle: .gray
         }

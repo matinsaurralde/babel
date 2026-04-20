@@ -38,6 +38,10 @@ enum SessionPhase: Equatable, Sendable {
     case listening
     case processing
     case inserting
+    /// The focused context (e.g. Terminal with Secure Keyboard Entry or a
+    /// password field) blocks programmatic text entry. We leave the transcript
+    /// on the system pasteboard so the user can ⌘V manually.
+    case clipboardFallback
     case error(String)
 
     var label: String {
@@ -46,6 +50,7 @@ enum SessionPhase: Equatable, Sendable {
         case .listening: "Listening…"
         case .processing: "Processing…"
         case .inserting: "Inserting…"
+        case .clipboardFallback: "On clipboard — ⌘V"
         case .error(let msg): "Error: \(msg)"
         }
     }

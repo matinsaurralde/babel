@@ -3,6 +3,16 @@ import CoreGraphics
 import Foundation
 
 enum PasteboardInserter {
+    /// Write `text` to the pasteboard without restoring previous contents.
+    /// Used as the Secure-Keyboard-Entry fallback: the user pastes manually
+    /// so we must leave the text on the clipboard indefinitely.
+    @MainActor
+    static func copyOnly(_ text: String) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+    }
+
     /// Save the current pasteboard, write `text`, synthesize ⌘V, and restore
     /// the previous contents after a short delay so the user doesn't lose what
     /// they had copied.

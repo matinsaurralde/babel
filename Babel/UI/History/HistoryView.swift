@@ -68,7 +68,7 @@ struct HistoryView: View {
         NSApp.hide(nil)
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(150))
-            TextInserter.insert(dictation.finalText)
+            _ = TextInserter.insert(dictation.finalText)
         }
     }
 

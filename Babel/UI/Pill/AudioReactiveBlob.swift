@@ -66,6 +66,7 @@ struct AudioReactiveBlob: View {
         case .listening: 4.0
         case .processing: 10.0
         case .inserting: 7.0
+        case .clipboardFallback: 3.0
         case .error: 3.0
         case .idle: 2.5
         }
@@ -79,6 +80,8 @@ struct AudioReactiveBlob: View {
             return [Color(red: 1.0, green: 0.6, blue: 0.3), Color(red: 0.95, green: 0.3, blue: 0.6), .clear]
         case .inserting:
             return [Color(red: 0.4, green: 0.95, blue: 0.6), Color(red: 0.2, green: 0.75, blue: 0.8), .clear]
+        case .clipboardFallback:
+            return [Color(red: 1.0, green: 0.85, blue: 0.3), Color(red: 0.95, green: 0.6, blue: 0.2), .clear]
         case .error:
             return [Color(red: 1.0, green: 0.35, blue: 0.35), Color(red: 0.8, green: 0.1, blue: 0.2), .clear]
         case .idle:

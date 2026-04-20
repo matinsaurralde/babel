@@ -147,7 +147,8 @@ final class AppCoordinator {
 
         state.phase = .inserting
         let finalText = state.lastFinalTranscript
-        TextInserter.insert(finalText)
+        let outcome = TextInserter.insert(finalText)
+        Self.log.info("insertion outcome: \(String(describing: outcome), privacy: .public) front=\(frontmostBundleID ?? "(unknown)", privacy: .public)")
 
         let duration = Date().timeIntervalSince(startedAt)
         if !finalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -161,7 +162,13 @@ final class AppCoordinator {
             ))
         }
 
-        try? await Task.sleep(for: .milliseconds(280))
+        switch outcome {
+        case .clipboardOnly:
+            state.phase = .clipboardFallback
+            try? await Task.sleep(for: .milliseconds(2000))
+        case .inserted, .empty:
+            try? await Task.sleep(for: .milliseconds(280))
+        }
         state.phase = .idle
         pill?.hide()
     }

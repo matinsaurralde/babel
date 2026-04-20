@@ -1,15 +1,32 @@
+import Carbon.HIToolbox
 import Foundation
 
 /// Orchestrator for the hybrid insertion strategy:
-/// 1. Try the Accessibility API (fast, clean — no pasteboard side-effects).
-/// 2. On failure, fall back to pasteboard + synthesized ⌘V.
+/// 1. If the focused context has **Secure Keyboard Entry** enabled (Terminal,
+///    password fields, secure text entry apps), both AX and pasteboard+⌘V are
+///    silently dropped by the system. Short-circuit to the clipboard and let
+///    the user paste manually.
+/// 2. Otherwise try the Accessibility API (clean, no pasteboard side-effects).
+/// 3. On AX failure, fall back to pasteboard + synthesized ⌘V.
 @MainActor
 enum TextInserter {
-    static func insert(_ text: String) {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+    enum Outcome: Equatable {
+        case inserted
+        case clipboardOnly
+        case empty
+    }
 
-        if AccessibilityInserter.tryInsert(trimmed) { return }
+    static func insert(_ text: String) -> Outcome {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return .empty }
+
+        if IsSecureEventInputEnabled() {
+            PasteboardInserter.copyOnly(trimmed)
+            return .clipboardOnly
+        }
+
+        if AccessibilityInserter.tryInsert(trimmed) { return .inserted }
         PasteboardInserter.insert(trimmed)
+        return .inserted
     }
 }
