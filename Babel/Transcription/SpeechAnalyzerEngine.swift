@@ -93,20 +93,23 @@ final class SpeechAnalyzerEngine: TranscriptionEngine {
         try await analyzer.start(inputSequence: inputStream)
         log.info("run: analyzer started")
 
-        let lastPartial = LockedString()
+        // SpeechTranscriber emits one `.isFinal` result per phrase/segment
+        // (not a single cumulative final at end-of-audio). The `text` on each
+        // result is just that segment's text, so we have to *accumulate*
+        // finals — otherwise only the last segment survives.
+        let accumulator = TranscriptAccumulator()
 
         let resultsTask = Task {
             do {
                 for try await result in transcriber.results {
                     let text = String(result.text.characters)
-                    lastPartial.set(text)
                     if result.isFinal {
-                        log.info("result: FINAL \(text.count) chars")
-                        continuation.yield(.final(text))
+                        accumulator.appendFinal(text)
+                        log.info("result: FINAL segment (\(text.count) chars)")
                     } else {
-                        log.debug("result: partial \(text.count) chars")
-                        continuation.yield(.partial(text))
+                        accumulator.setPartial(text)
                     }
+                    continuation.yield(.partial(accumulator.snapshot()))
                 }
                 log.info("results: stream ended")
             } catch {
@@ -152,8 +155,7 @@ final class SpeechAnalyzerEngine: TranscriptionEngine {
         } catch {
             log.error("run: finalize timed out — cancelling: \(String(describing: error), privacy: .public)")
             resultsTask.cancel()
-            let fallback = lastPartial.get()
-            continuation.yield(.final(fallback))
+            continuation.yield(.final(accumulator.snapshot()))
             return
         }
 
@@ -168,12 +170,9 @@ final class SpeechAnalyzerEngine: TranscriptionEngine {
             log.error("run: resultsTask did not settle in 2s — cancelled")
         }
 
-        // If no .final was ever yielded, fall back to the last partial we saw.
-        let fallback = lastPartial.get()
-        if !fallback.isEmpty {
-            log.info("run: yielding fallback from last partial (\(fallback.count) chars)")
-            continuation.yield(.final(fallback))
-        }
+        let fullTranscript = accumulator.snapshot()
+        log.info("run: yielding accumulated final (\(fullTranscript.count) chars)")
+        continuation.yield(.final(fullTranscript))
     }
 
     private static func ensureAuthorized() async throws {
@@ -275,17 +274,32 @@ private final class ConvertOnce: @unchecked Sendable {
     var done = false
 }
 
-private final class LockedString: @unchecked Sendable {
+/// Thread-safe buffer for progressive transcription state. Holds every
+/// committed final segment plus the current volatile partial. `snapshot()`
+/// returns the concatenation of both, which is what the UI shows.
+private final class TranscriptAccumulator: @unchecked Sendable {
     private let lock = NSLock()
-    private var value: String = ""
+    private var finals: [String] = []
+    private var partial: String = ""
 
-    func set(_ new: String) {
+    func appendFinal(_ text: String) {
         lock.lock(); defer { lock.unlock() }
-        value = new
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+        if !trimmed.isEmpty {
+            finals.append(trimmed)
+        }
+        partial = ""
     }
 
-    func get() -> String {
+    func setPartial(_ text: String) {
         lock.lock(); defer { lock.unlock() }
-        return value
+        partial = text.trimmingCharacters(in: .whitespaces)
+    }
+
+    func snapshot() -> String {
+        lock.lock(); defer { lock.unlock() }
+        var parts = finals
+        if !partial.isEmpty { parts.append(partial) }
+        return parts.joined(separator: " ")
     }
 }
