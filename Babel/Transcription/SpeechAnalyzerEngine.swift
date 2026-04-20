@@ -132,17 +132,37 @@ final class SpeechAnalyzerEngine: TranscriptionEngine {
         inputCont.finish()
         log.info("run: input closed — chunks=\(chunkCount), frames=\(frameCount)")
 
-        // Finalize with a hard timeout so the UI never hangs in .processing forever.
-        try await withTimeout(seconds: 6) {
-            try await analyzer.finalizeAndFinishThroughEndOfInput()
+        // If we never saw any audio (user tapped the hotkey instantly), skip
+        // finalize entirely and yield an empty final. Calling finalize with an
+        // analyzer that was never fed can hang indefinitely in the results
+        // stream and leave the UI trapped in `.processing`.
+        if chunkCount == 0 {
+            log.info("run: no audio received, skipping finalize")
+            resultsTask.cancel()
+            continuation.yield(.final(""))
+            return
         }
-        log.info("run: analyzer finalized")
+
+        // Finalize with a hard timeout so the UI never hangs in .processing forever.
+        do {
+            try await withTimeout(seconds: 6) {
+                try await analyzer.finalizeAndFinishThroughEndOfInput()
+            }
+            log.info("run: analyzer finalized")
+        } catch {
+            log.error("run: finalize timed out — cancelling: \(String(describing: error), privacy: .public)")
+            resultsTask.cancel()
+            let fallback = lastPartial.get()
+            continuation.yield(.final(fallback))
+            return
+        }
 
         // Results stream should close shortly after finalize. Give it up to 2s.
         do {
             try await withTimeout(seconds: 2) {
                 _ = await resultsTask.result
             }
+            log.info("run: resultsTask completed")
         } catch {
             resultsTask.cancel()
             log.error("run: resultsTask did not settle in 2s — cancelled")

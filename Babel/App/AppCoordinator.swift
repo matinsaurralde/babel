@@ -131,12 +131,15 @@ final class AppCoordinator {
                     state.lastFinalTranscript = text
                 }
             }
+            Self.log.info("runSession: transcribe loop exited")
         } catch {
             Self.log.error("transcription error: \(String(describing: error), privacy: .public)")
             state.phase = .error("Transcription failed")
         }
 
+        forwarder.cancel()
         await forwarder.value
+        Self.log.info("runSession: forwarder done")
 
         if case .error = state.phase {
             try? await Task.sleep(for: .milliseconds(900))
