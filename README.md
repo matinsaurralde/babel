@@ -90,6 +90,12 @@ The first launch walks you through each one. Every permission prompts through ma
 
 **Hold Right Option** to record. Release to insert. Rebinding arrives with v1.0.
 
+## Languages
+
+Babel transcribes in every language your Mac's dictation can. It picks the locale you've set as macOS' system language by default; Settings → General → Dictation Language lets you override the choice.
+
+To add more languages, open **System Settings → Keyboard → Dictation** and enable the ones you want. macOS downloads the on-device model the first time; after that, everything stays local.
+
 ## Design decisions
 
 The important choices live as ADRs in [`docs/decisions/`](./docs/decisions). If you're wondering "why did they do X instead of Y", that's where to look. Start with:

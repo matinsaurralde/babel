@@ -189,20 +189,10 @@ final class SpeechAnalyzerEngine: TranscriptionEngine {
 
     private static func pickLocale() async throws -> Locale {
         let installed = await SpeechTranscriber.installedLocales
-        guard !installed.isEmpty else { throw EngineError.noInstalledLocale }
-
-        let preferred = Locale.current
-        if let match = installed.first(where: { $0.identifier(.bcp47) == preferred.identifier(.bcp47) }) {
-            return match
+        guard let resolved = LocalePreference.resolve(installed: installed) else {
+            throw EngineError.noInstalledLocale
         }
-        if let lang = preferred.language.languageCode?.identifier,
-           let match = installed.first(where: { $0.language.languageCode?.identifier == lang }) {
-            return match
-        }
-        if let english = installed.first(where: { $0.language.languageCode?.identifier == "en" }) {
-            return english
-        }
-        return installed[0]
+        return resolved
     }
 
     private static func formatsMatch(_ a: AVAudioFormat, _ b: AVAudioFormat) -> Bool {

@@ -1,3 +1,4 @@
+import Speech
 import SwiftUI
 
 struct SettingsRootView: View {
@@ -36,6 +37,9 @@ struct SettingsRootView: View {
 private struct GeneralTab: View {
     @Environment(AppState.self) private var state
     @AppStorage("babel.defaultMode") private var defaultModeRaw: String = BabelMode.fast.rawValue
+    @AppStorage(LocalePreference.userDefaultsKey) private var dictationLocale: String = ""
+
+    @State private var installedLocales: [Locale] = []
 
     var body: some View {
         @Bindable var state = state
@@ -55,9 +59,37 @@ private struct GeneralTab: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
+
+            Section("Dictation language") {
+                Picker("Language", selection: $dictationLocale) {
+                    Text("Auto (follow system)").tag("")
+                    if !installedLocales.isEmpty {
+                        Divider()
+                        ForEach(installedLocales, id: \.identifier) { locale in
+                            Text(LocalePreference.displayName(for: locale))
+                                .tag(locale.identifier(.bcp47))
+                        }
+                    }
+                }
+
+                Text(localeHelpText)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
         .padding()
+        .task {
+            installedLocales = await SpeechTranscriber.installedLocales
+                .sorted { LocalePreference.displayName(for: $0) < LocalePreference.displayName(for: $1) }
+        }
+    }
+
+    private var localeHelpText: String {
+        if installedLocales.isEmpty {
+            return "No dictation languages are installed yet. Open System Settings → General → Keyboard → Dictation to enable the languages you want."
+        }
+        return "On-device transcription. Only languages you've enabled for macOS dictation appear above. Add more in System Settings → Keyboard → Dictation."
     }
 }
 
