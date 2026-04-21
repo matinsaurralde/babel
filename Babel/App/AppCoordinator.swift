@@ -52,7 +52,7 @@ final class AppCoordinator {
             Self.log.info("hotkey installed")
         } catch {
             Self.log.error("hotkey install failed: \(String(describing: error), privacy: .public)")
-            state.phase = .error("Input Monitoring required")
+            state.phase = .error("Enable Input Monitoring to use the hotkey")
         }
     }
 
@@ -69,10 +69,27 @@ final class AppCoordinator {
         let audioStream: AsyncStream<AudioCapture.Chunk>
         do {
             audioStream = try audio.start()
+        } catch AudioCapture.AudioCaptureError.microphoneNotAuthorized {
+            Self.log.error("audio start failed: microphone not authorized")
+            state.phase = .error("Grant Microphone access to record")
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(3))
+                if case .error = state.phase {
+                    state.phase = .idle
+                    pill?.hide()
+                }
+            }
+            return
         } catch {
             Self.log.error("audio start failed: \(String(describing: error), privacy: .public)")
-            state.phase = .error("Microphone unavailable")
-            pill?.hide()
+            state.phase = .error("Couldn't start the microphone")
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(3))
+                if case .error = state.phase {
+                    state.phase = .idle
+                    pill?.hide()
+                }
+            }
             return
         }
 
@@ -134,9 +151,18 @@ final class AppCoordinator {
                 }
             }
             Self.log.info("runSession: transcribe loop exited")
+        } catch SpeechAnalyzerEngine.EngineError.notAuthorized {
+            Self.log.error("transcription: speech recognition not authorized")
+            state.phase = .error("Grant Speech Recognition in Settings")
+        } catch SpeechAnalyzerEngine.EngineError.noInstalledLocale {
+            Self.log.error("transcription: no dictation locale installed")
+            state.phase = .error("No dictation language installed")
+        } catch SpeechAnalyzerEngine.EngineError.finalizeTimeout {
+            Self.log.error("transcription: finalize timed out")
+            state.phase = .error("Transcription took too long")
         } catch {
             Self.log.error("transcription error: \(String(describing: error), privacy: .public)")
-            state.phase = .error("Transcription failed")
+            state.phase = .error("Couldn't transcribe audio")
         }
 
         forwarder.cancel()
@@ -144,7 +170,8 @@ final class AppCoordinator {
         Self.log.info("runSession: forwarder done")
 
         if case .error = state.phase {
-            try? await Task.sleep(for: .milliseconds(900))
+            // Hold the error on the pill long enough to read (~3 s).
+            try? await Task.sleep(for: .seconds(3))
             state.phase = .idle
             pill?.hide()
             return

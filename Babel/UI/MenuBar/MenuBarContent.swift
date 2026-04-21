@@ -7,8 +7,8 @@ struct MenuBarContent: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if !Permissions.allGranted() {
-                permissionBanner
+            if shouldShowStatusBanner {
+                statusBanner
                 Divider().padding(.vertical, 6)
             }
             header
@@ -21,18 +21,53 @@ struct MenuBarContent: View {
         .frame(width: 300)
     }
 
-    private var permissionBanner: some View {
-        Button {
-            openWindow(id: BabelWindows.onboardingID)
-            NSApp.activate(ignoringOtherApps: true)
-        } label: {
+    private var shouldShowStatusBanner: Bool {
+        if !Permissions.allGranted() { return true }
+        if case .error = state.phase { return true }
+        return false
+    }
+
+    /// Renders an orange banner for missing permissions (most common blocker)
+    /// or a red banner for the latest session error, whichever is more urgent.
+    @ViewBuilder
+    private var statusBanner: some View {
+        if !Permissions.allGranted() {
+            banner(
+                color: .orange,
+                symbol: "exclamationmark.triangle.fill",
+                title: "Permissions required",
+                subtitle: "Click to open the onboarding window"
+            ) {
+                openWindow(id: BabelWindows.onboardingID)
+                NSApp.activate(ignoringOtherApps: true)
+            }
+        } else if case .error(let msg) = state.phase {
+            banner(
+                color: .red,
+                symbol: "xmark.octagon.fill",
+                title: msg,
+                subtitle: "Open System Settings → Privacy & Security"
+            ) {
+                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security")!)
+            }
+        }
+    }
+
+    private func banner(
+        color: Color,
+        symbol: String,
+        title: String,
+        subtitle: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
             HStack(spacing: 10) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
+                Image(systemName: symbol)
+                    .foregroundStyle(color)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Permissions required")
+                    Text(title)
                         .font(.system(.subheadline, weight: .semibold))
-                    Text("Click to open the onboarding window")
+                    Text(subtitle)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -41,7 +76,7 @@ struct MenuBarContent: View {
             .padding(10)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.orange.opacity(0.15))
+                    .fill(color.opacity(0.15))
             )
         }
         .buttonStyle(.plain)
