@@ -23,12 +23,19 @@ settings:
     GCC_WARN_UNINITIALIZED_AUTOS: YES
     CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION: YES
 
+packages:
+  WhisperKit:
+    url: https://github.com/argmaxinc/WhisperKit
+    from: "0.9.0"
+
 targets:
   Babel:
     type: application
     platform: macOS
     sources:
       - path: Babel
+    dependencies:
+      - package: WhisperKit
     info:
       path: Babel/Resources/Info.generated.plist
       properties:

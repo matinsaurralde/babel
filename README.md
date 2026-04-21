@@ -34,11 +34,11 @@ Jorge Luis Borges — the Argentine writer — imagined a library containing *ev
 
 ## Status
 
-**Pre-alpha.** macOS 26 Tahoe and later only. Three modes:
+**Pre-alpha.** macOS 26 Tahoe and later only. Three modes, all on-device:
 
-- **Fast** — Apple SpeechAnalyzer, no post-processing
-- **Balanced** — SpeechAnalyzer with partial-result streaming
-- **Accurate** — WhisperKit `large-v3-turbo` *(landing in v1.0)*
+- **Fast** — Apple SpeechAnalyzer, no post-processing. <400 ms end-of-speech.
+- **Balanced** — SpeechAnalyzer with partial-result streaming.
+- **Accurate** — Whisper `large-v3-turbo` via [WhisperKit](https://github.com/argmaxinc/WhisperKit). First use downloads ~1.5 GB from Hugging Face; cached afterwards.
 
 v1.1 will add local LLM post-processing via [Ollama](https://ollama.com) for grammar cleanup and custom vocabulary. v1.2 will add optional BYOK routing to OpenAI / Groq / Cohere for users who want cloud-fast.
 

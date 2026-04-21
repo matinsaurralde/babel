@@ -18,6 +18,12 @@ final class AppCoordinator {
     private var sessionTask: Task<Void, Never>?
     private var installRetryTask: Task<Void, Never>?
 
+    // Keep one instance per engine so loaded models / warm analyzers survive
+    // across sessions. The WhisperKit instance is cheap to create — actual
+    // model download only happens inside `transcribe(audio:)` on first call.
+    private let speechAnalyzerEngine = SpeechAnalyzerEngine()
+    private let whisperKitEngine = WhisperKitEngine()
+
     func start() {
         Self.log.info("permissions: mic=\(String(describing: Permissions.status(for: .microphone)), privacy: .public) speech=\(String(describing: Permissions.status(for: .speechRecognition)), privacy: .public) accessibility=\(String(describing: Permissions.status(for: .accessibility)), privacy: .public) inputMonitoring=\(String(describing: Permissions.status(for: .inputMonitoring)), privacy: .public)")
 
@@ -206,8 +212,11 @@ final class AppCoordinator {
     }
 
     private func engine(for mode: BabelMode) -> TranscriptionEngine {
-        // All three modes currently route through SpeechAnalyzer. Accurate will
-        // switch to WhisperKit large-v3-turbo once that engine lands.
-        SpeechAnalyzerEngine()
+        switch mode {
+        case .fast, .balanced:
+            return speechAnalyzerEngine
+        case .accurate:
+            return whisperKitEngine
+        }
     }
 }

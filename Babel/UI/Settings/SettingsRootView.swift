@@ -119,8 +119,15 @@ private struct ModelsTab: View {
             Section("Transcription engine") {
                 LabeledContent("Fast", value: "Apple SpeechAnalyzer")
                 LabeledContent("Balanced", value: "Apple SpeechAnalyzer")
-                LabeledContent("Accurate", value: "Whisper large-v3-turbo (coming in v1.0)")
+                LabeledContent("Accurate", value: "Whisper large-v3-turbo (WhisperKit)")
             }
+
+            Section("Accurate mode — first run") {
+                Text("The Whisper large-v3-turbo model (~1.5 GB) is downloaded from Hugging Face on first use and cached under ~/Documents/huggingface. Subsequent sessions load from disk.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Post-processing LLM") {
                 Text("Coming in v1.1 — Ollama integration for grammar cleanup.")
                     .foregroundStyle(.secondary)
