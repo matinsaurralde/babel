@@ -20,8 +20,8 @@ struct HistoryView: View {
                         HistoryRow(dictation: dictation)
                             .tag(dictation.id)
                             .contextMenu {
-                                Button("Copy text") { copy(dictation) }
-                                Button("Re-insert") { reinsert(dictation) }
+                                Button("Copy") { copy(dictation) }
+                                Button("Insert at cursor") { reinsert(dictation) }
                                 Divider()
                                 Button("Delete", role: .destructive) { delete(dictation) }
                             }
@@ -125,16 +125,21 @@ private struct HistoryDetailView: View {
                 } label: {
                     Label("Copy", systemImage: "doc.on.doc")
                 }
+                .help("Copy the transcript to the clipboard")
+
                 Button {
                     onReinsert(dictation)
                 } label: {
-                    Label("Re-insert", systemImage: "text.insert")
+                    Label("Insert at cursor", systemImage: "text.cursor")
                 }
+                .help("Hide Babel, then type this transcript into whatever app is focused next")
+
                 Button(role: .destructive) {
                     onDelete(dictation)
                 } label: {
                     Label("Delete", systemImage: "trash")
                 }
+                .help("Remove this entry from history")
             }
         }
     }
