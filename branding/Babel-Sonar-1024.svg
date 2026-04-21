@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="body" cx="50%" cy="45%" r="75%">
+      <stop offset="0%" stop-color="#3a2d7a"></stop>
+      <stop offset="55%" stop-color="#1c154a"></stop>
+      <stop offset="100%" stop-color="#0a0725"></stop>
+    </radialGradient>
+    <linearGradient id="spec" x1="50%" y1="0%" x2="50%" y2="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28"></stop>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
+    </linearGradient>
+    <linearGradient id="rim" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#a9b8ff" stop-opacity="0.35"></stop>
+      <stop offset="100%" stop-color="#6d5fd6" stop-opacity="0.15"></stop>
+    </linearGradient>
+    <linearGradient id="caret" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"></stop>
+      <stop offset="100%" stop-color="#bdd1ff"></stop>
+    </linearGradient>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#9ec0ff" stop-opacity="0.45"></stop>
+      <stop offset="60%" stop-color="#7aa0ff" stop-opacity="0.12"></stop>
+      <stop offset="100%" stop-color="#7aa0ff" stop-opacity="0"></stop>
+    </radialGradient>
+    <clipPath id="squircle-clip">
+      <path d="M 0,452 C 0,208 208,0 452,0 L 572,0 C 816,0 1024,208 1024,452 L 1024,572 C 1024,816 816,1024 572,1024 L 452,1024 C 208,1024 0,816 0,572 Z"></path>
+    </clipPath>
+  </defs>
+
+  
+  <path d="M 0,452 C 0,208 208,0 452,0 L 572,0 C 816,0 1024,208 1024,452 L 1024,572 C 1024,816 816,1024 572,1024 L 452,1024 C 208,1024 0,816 0,572 Z" fill="url(#body)"></path>
+  <path d="M 0,452 C 0,208 208,0 452,0 L 572,0 C 816,0 1024,208 1024,452 L 1024,572 C 1024,816 816,1024 572,1024 L 452,1024 C 208,1024 0,816 0,572 Z" fill="url(#spec)"></path>
+  <path d="M 0,452 C 0,208 208,0 452,0 L 572,0 C 816,0 1024,208 1024,452 L 1024,572 C 1024,816 816,1024 572,1024 L 452,1024 C 208,1024 0,816 0,572 Z" fill="none" stroke="url(#rim)" stroke-width="2" opacity="0.6"></path>
+
+  <g clip-path="url(#squircle-clip)">
+    
+    <ellipse cx="512" cy="640" rx="320" ry="160" fill="url(#halo)" opacity="0.7"></ellipse>
+    
+    <path d="M 300 780 Q 512 700 724 780" fill="none" stroke="#bdd1ff" stroke-width="2.5" opacity="0.55" stroke-linecap="round"></path>
+    <path d="M 260 840 Q 512 720 764 840" fill="none" stroke="#bdd1ff" stroke-width="1.8" opacity="0.35" stroke-linecap="round"></path>
+    <path d="M 220 900 Q 512 740 804 900" fill="none" stroke="#bdd1ff" stroke-width="1.2" opacity="0.2" stroke-linecap="round"></path>
+    
+    <g fill="url(#caret)">
+      <rect x="498" y="220" width="28" height="460" rx="2"></rect>
+      <rect x="464" y="220" width="96" height="14" rx="2"></rect>
+      <rect x="464" y="666" width="96" height="14" rx="2"></rect>
+    </g>
+  </g>
+</svg>
