@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <radialGradient id="bg" cx="60%" cy="50%" r="75%">
+      <stop offset="0%" stop-color="#3a2d7a"></stop>
+      <stop offset="55%" stop-color="#1c154a"></stop>
+      <stop offset="100%" stop-color="#0a0725"></stop>
+    </radialGradient>
+
+    <radialGradient id="ibody" cx="50%" cy="45%" r="75%">
+      <stop offset="0%" stop-color="#3a2d7a"></stop>
+      <stop offset="55%" stop-color="#1c154a"></stop>
+      <stop offset="100%" stop-color="#0a0725"></stop>
+    </radialGradient>
+    <linearGradient id="ispec" x1="50%" y1="0%" x2="50%" y2="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28"></stop>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
+    </linearGradient>
+    <linearGradient id="irim" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#a9b8ff" stop-opacity="0.35"></stop>
+      <stop offset="100%" stop-color="#6d5fd6" stop-opacity="0.15"></stop>
+    </linearGradient>
+    <linearGradient id="icaret" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"></stop>
+      <stop offset="100%" stop-color="#bdd1ff"></stop>
+    </linearGradient>
+    <radialGradient id="ihalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#9ec0ff" stop-opacity="0.45"></stop>
+      <stop offset="60%" stop-color="#7aa0ff" stop-opacity="0.12"></stop>
+      <stop offset="100%" stop-color="#7aa0ff" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="atm" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6a7fff" stop-opacity="0.18"></stop>
+      <stop offset="100%" stop-color="#6a7fff" stop-opacity="0"></stop>
+    </radialGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" seed="7"></feTurbulence>
+      <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.04 0"></feColorMatrix>
+      <feComposite in2="SourceGraphic" operator="in"></feComposite>
+    </filter>
+    <clipPath id="sq">
+      <path transform="translate(100 110) scale(0.41015625)" d="M 0,452 C 0,208 208,0 452,0 L 572,0 C 816,0 1024,208 1024,452 L 1024,572 C 1024,816 816,1024 572,1024 L 452,1024 C 208,1024 0,816 0,572 Z"></path>
+    </clipPath>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#bg)"></rect>
+  <rect width="1280" height="640" fill="#ffffff" opacity="0.02" filter="url(#grain)"></rect>
+
+  <ellipse cx="310" cy="320" rx="315" ry="273" fill="url(#atm)"></ellipse>
+
+  <g transform="translate(100 110) scale(0.41015625)">
+    <path d="M 0,452 C 0,208 208,0 452,0 L 572,0 C 816,0 1024,208 1024,452 L 1024,572 C 1024,816 816,1024 572,1024 L 452,1024 C 208,1024 0,816 0,572 Z" fill="url(#ibody)"></path>
+    <path d="M 0,452 C 0,208 208,0 452,0 L 572,0 C 816,0 1024,208 1024,452 L 1024,572 C 1024,816 816,1024 572,1024 L 452,1024 C 208,1024 0,816 0,572 Z" fill="url(#ispec)"></path>
+    <path d="M 0,452 C 0,208 208,0 452,0 L 572,0 C 816,0 1024,208 1024,452 L 1024,572 C 1024,816 816,1024 572,1024 L 452,1024 C 208,1024 0,816 0,572 Z" fill="none" stroke="url(#irim)" stroke-width="2" opacity="0.6"></path>
+  </g>
+  <g clip-path="url(#sq)">
+    <g transform="translate(100 110) scale(0.41015625)">
+      <ellipse cx="512" cy="640" rx="320" ry="160" fill="url(#ihalo)" opacity="0.7"></ellipse>
+      <path d="M 300 780 Q 512 700 724 780" fill="none" stroke="#bdd1ff" stroke-width="2.5" opacity="0.55" stroke-linecap="round"></path>
+      <path d="M 260 840 Q 512 720 764 840" fill="none" stroke="#bdd1ff" stroke-width="1.8" opacity="0.35" stroke-linecap="round"></path>
+      <path d="M 220 900 Q 512 740 804 900" fill="none" stroke="#bdd1ff" stroke-width="1.2" opacity="0.2" stroke-linecap="round"></path>
+      <g fill="url(#icaret)">
+        <rect x="498" y="220" width="28" height="460" rx="2"></rect>
+        <rect x="464" y="220" width="96" height="14" rx="2"></rect>
+        <rect x="464" y="666" width="96" height="14" rx="2"></rect>
+      </g>
+    </g>
+  </g>
+
+  
+  <text x="620" y="300" fill="#ffffff" fill-opacity="0.95" font-family="-apple-system, BlinkMacSystemFont, &#39;SF Pro Display&#39;, &#39;Helvetica Neue&#39;, Helvetica, Arial, sans-serif" font-size="120" font-weight="600" letter-spacing="-2.4">Babel</text>
+
+  
+  <text x="624" y="370" fill="#ffffff" fill-opacity="0.70" font-family="-apple-system, BlinkMacSystemFont, &#39;SF Pro Display&#39;, &#39;Helvetica Neue&#39;, Helvetica, Arial, sans-serif" font-size="30" font-weight="400">Local dictation for macOS.</text>
+
+  
+  <text x="624" y="410" fill="#ffffff" fill-opacity="0.55" font-family="-apple-system, BlinkMacSystemFont, &#39;SF Pro Display&#39;, &#39;Helvetica Neue&#39;, Helvetica, Arial, sans-serif" font-size="20" font-weight="400">Open source. On-device. Free.</text>
+
+  
+  <text x="1220" y="600" text-anchor="end" fill="#ffffff" fill-opacity="0.5" font-family="&#39;SF Mono&#39;, ui-monospace, Menlo, Monaco, &#39;Courier New&#39;, monospace" font-size="14" letter-spacing="0.02em">github.com/matinsaurralde/babel</text>
+</svg>

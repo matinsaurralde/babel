@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="body" cx="50%" cy="45%" r="75%">
+      <stop offset="0%" stop-color="#3a2d7a"></stop>
+      <stop offset="55%" stop-color="#1c154a"></stop>
+      <stop offset="100%" stop-color="#0a0725"></stop>
+    </radialGradient>
+    <linearGradient id="spec" x1="50%" y1="0%" x2="50%" y2="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28"></stop>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
+    </linearGradient>
+    <linearGradient id="rim" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#a9b8ff" stop-opacity="0.35"></stop>
+      <stop offset="100%" stop-color="#6d5fd6" stop-opacity="0.15"></stop>
+    </linearGradient>
+    <linearGradient id="caret" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"></stop>
+      <stop offset="100%" stop-color="#bdd1ff"></stop>
+    </linearGradient>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#9ec0ff" stop-opacity="0.5"></stop>
+      <stop offset="60%" stop-color="#7aa0ff" stop-opacity="0.15"></stop>
+      <stop offset="100%" stop-color="#7aa0ff" stop-opacity="0"></stop>
+    </radialGradient>
+    <clipPath id="sq">
+      <path d="M 0,452 C 0,208 208,0 452,0 L 572,0 C 816,0 1024,208 1024,452 L 1024,572 C 1024,816 816,1024 572,1024 L 452,1024 C 208,1024 0,816 0,572 Z"></path>
+    </clipPath>
+  </defs>
+
+  
+  <path d="M 0,452 C 0,208 208,0 452,0 L 572,0 C 816,0 1024,208 1024,452 L 1024,572 C 1024,816 816,1024 572,1024 L 452,1024 C 208,1024 0,816 0,572 Z" fill="url(#body)"></path>
+  <path d="M 0,452 C 0,208 208,0 452,0 L 572,0 C 816,0 1024,208 1024,452 L 1024,572 C 1024,816 816,1024 572,1024 L 452,1024 C 208,1024 0,816 0,572 Z" fill="url(#spec)"></path>
+  <path d="M 0,452 C 0,208 208,0 452,0 L 572,0 C 816,0 1024,208 1024,452 L 1024,572 C 1024,816 816,1024 572,1024 L 452,1024 C 208,1024 0,816 0,572 Z" fill="none" stroke="url(#rim)" stroke-width="2" opacity="0.6"></path>
+
+  <g clip-path="url(#sq)">
+    
+    <ellipse cx="512" cy="620" rx="320" ry="200" fill="url(#halo)" opacity="0.85"></ellipse>
+
+    
+    <g fill="url(#caret)">
+      <rect x="498" y="200" width="28" height="380" rx="2"></rect>
+      <rect x="464" y="200" width="96" height="14" rx="2"></rect>
+      <rect x="464" y="566" width="96" height="14" rx="2"></rect>
+    </g>
+
+    
+    
+    <g stroke="url(#caret)" stroke-width="22" stroke-linecap="round" fill="none">
+      <line x1="512" y1="620" x2="512" y2="820"></line>
+    </g>
+    
+    <path d="M 430 760 L 512 838 L 594 760" fill="none" stroke="url(#caret)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"></path>
+
+    
+    <path d="M 340 900 Q 512 840 684 900" fill="none" stroke="#bdd1ff" stroke-width="2" opacity="0.35" stroke-linecap="round"></path>
+    <path d="M 280 950 Q 512 870 744 950" fill="none" stroke="#bdd1ff" stroke-width="1.5" opacity="0.2" stroke-linecap="round"></path>
+  </g>
+</svg>

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="branding/readme-hero/Babel-readme-hero-1600x900.png" alt="Babel" />
+</p>
+
 # Babel
 
 **Dictation for macOS that never leaves your Mac.**

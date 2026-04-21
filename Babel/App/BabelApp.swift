@@ -59,8 +59,8 @@ private struct MenuBarLabel: View {
     @State private var didCheckPermissions = false
 
     var body: some View {
-        Image(systemName: state.isActive ? "waveform.circle.fill" : "waveform.circle")
-            .symbolRenderingMode(.hierarchical)
+        // Template image — macOS tints for light/dark menu bars automatically.
+        Image("MenuBarIcon")
             .task {
                 // Runs once when the menu-bar label is first rendered — SwiftUI
                 // scenes are registered by then, so openWindow works reliably.
