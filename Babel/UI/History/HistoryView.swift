@@ -2,6 +2,7 @@ import AppKit
 import SwiftData
 import SwiftUI
 
+
 struct HistoryView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: [SortDescriptor(\Dictation.createdAt, order: .reverse)])
@@ -21,7 +22,6 @@ struct HistoryView: View {
                             .tag(dictation.id)
                             .contextMenu {
                                 Button("Copy") { copy(dictation) }
-                                Button("Insert at cursor") { reinsert(dictation) }
                                 Divider()
                                 Button("Delete", role: .destructive) { delete(dictation) }
                             }
@@ -32,7 +32,7 @@ struct HistoryView: View {
             }
         } detail: {
             if let selected = dictations.first(where: { $0.id == selection }) {
-                HistoryDetailView(dictation: selected, onCopy: copy, onReinsert: reinsert, onDelete: delete)
+                HistoryDetailView(dictation: selected, onCopy: copy, onDelete: delete)
             } else {
                 ContentUnavailableView("Pick a dictation", systemImage: "waveform", description: Text("Your history lives here. Select an entry to see its details."))
             }
@@ -60,16 +60,6 @@ struct HistoryView: View {
         let pb = NSPasteboard.general
         pb.clearContents()
         pb.setString(dictation.finalText, forType: .string)
-    }
-
-    private func reinsert(_ dictation: Dictation) {
-        // The active app is whatever was focused before the history window opened.
-        // We hide our window, hop back to the previous app, and inject.
-        NSApp.hide(nil)
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(150))
-            _ = TextInserter.insert(dictation.finalText)
-        }
     }
 
     private func delete(_ dictation: Dictation) {
@@ -106,7 +96,6 @@ private struct HistoryRow: View {
 private struct HistoryDetailView: View {
     let dictation: Dictation
     let onCopy: (Dictation) -> Void
-    let onReinsert: (Dictation) -> Void
     let onDelete: (Dictation) -> Void
 
     var body: some View {
@@ -126,13 +115,6 @@ private struct HistoryDetailView: View {
                     Label("Copy", systemImage: "doc.on.doc")
                 }
                 .help("Copy the transcript to the clipboard")
-
-                Button {
-                    onReinsert(dictation)
-                } label: {
-                    Label("Insert at cursor", systemImage: "text.cursor")
-                }
-                .help("Hide Babel, then type this transcript into whatever app is focused next")
 
                 Button(role: .destructive) {
                     onDelete(dictation)
