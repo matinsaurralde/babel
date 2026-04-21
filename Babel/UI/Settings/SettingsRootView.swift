@@ -40,10 +40,22 @@ private struct GeneralTab: View {
     @AppStorage(LocalePreference.userDefaultsKey) private var dictationLocale: String = ""
 
     @State private var installedLocales: [Locale] = []
+    @State private var launchAtLogin: Bool = LaunchAtLogin.isEnabled
 
     var body: some View {
         @Bindable var state = state
         Form {
+            Section("Startup") {
+                Toggle("Launch at login", isOn: $launchAtLogin)
+                    .onChange(of: launchAtLogin) { _, new in
+                        LaunchAtLogin.setEnabled(new)
+                        launchAtLogin = LaunchAtLogin.isEnabled
+                    }
+                Text("Babel lives in the menu bar, so it's useful to have it ready whenever your Mac starts.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Default mode") {
                 Picker("Mode", selection: $state.mode) {
                     ForEach(BabelMode.allCases) { mode in
