@@ -41,6 +41,7 @@ private struct GeneralTab: View {
 
     @State private var installedLocales: [Locale] = []
     @State private var launchAtLogin: Bool = LaunchAtLogin.isEnabled
+    @AppStorage(SessionSounds.userDefaultsKey) private var soundsEnabled: Bool = false
 
     var body: some View {
         @Bindable var state = state
@@ -52,6 +53,13 @@ private struct GeneralTab: View {
                         launchAtLogin = LaunchAtLogin.isEnabled
                     }
                 Text("Babel lives in the menu bar, so it's useful to have it ready whenever your Mac starts.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Feedback") {
+                Toggle("Play a sound when I start and stop dictating", isOn: $soundsEnabled)
+                Text("Subtle built-in macOS sounds (Tink / Pop). Useful if you'd rather keep your eyes on the app you're typing into than on the pill.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

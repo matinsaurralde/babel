@@ -59,6 +59,7 @@ final class AppCoordinator {
     private func handlePress() {
         guard sessionTask == nil else { return }
         Self.log.info("press")
+        SessionSounds.playStart()
         state.phase = .listening
         state.audioLevel = 0
         state.partialTranscript = ""
@@ -94,6 +95,7 @@ final class AppCoordinator {
 
     private func handleRelease() {
         Self.log.info("release")
+        SessionSounds.playStop()
         audio.stop()
         state.phase = .processing
     }
