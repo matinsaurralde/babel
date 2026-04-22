@@ -36,6 +36,14 @@ Jorge Luis Borges — the Argentine writer — imagined a library containing *ev
 
 **Speed is the other pillar.** Push-to-hold gives you one modal gesture. Transcription streams in the background while you're speaking so the final text is ready the instant you release the key. Apple's SpeechAnalyzer on M-series hits ~45 ms/sec of audio — the bottleneck is now how fast you talk.
 
+## Download
+
+**Latest: [Babel 0.1.0](https://github.com/matinsaurralde/babel/releases/latest)** ([DMG](https://github.com/matinsaurralde/babel/releases/download/v0.1.0/Babel-0.1.0.dmg), 4.4 MB) — macOS 26 Tahoe, Apple Silicon.
+
+The DMG is signed with a free Apple Personal Team certificate, not notarized. First launch: **right-click Babel.app → Open** (not double-click). macOS asks once whether to open an app from an unidentified developer; allow it, and future launches are regular double-clicks.
+
+Subsequent releases arrive through Sparkle — *Check for Updates…* in the menu.
+
 ## Status
 
 **Pre-alpha.** macOS 26 Tahoe and later only. Three modes, all on-device:

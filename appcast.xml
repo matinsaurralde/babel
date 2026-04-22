@@ -19,5 +19,17 @@
     <link>https://github.com/matinsaurralde/babel</link>
     <description>Babel — on-device dictation for macOS. Auto-update feed.</description>
     <language>en</language>
+    <item>
+      <title>Babel 0.1.0</title>
+      <pubDate>Wed, 22 Apr 2026 02:12:36 +0000</pubDate>
+      <sparkle:version>0.1.0</sparkle:version>
+      <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[First public build. See https://github.com/matinsaurralde/babel/releases/tag/v0.1.0]]></description>
+      <enclosure
+        url="https://github.com/matinsaurralde/babel/releases/download/v0.1.0/Babel-0.1.0.dmg"
+        sparkle:edSignature="bLppKpQLSKJu8fdbMQ107pzpC6fWiOZmI4gM5z7sGH5f8xbNo17TFhrJMsCnzbsqEWF3CMi+q8Qr0tIBqPlACA==" length="4432806"
+      />
+    </item>
   </channel>
 </rss>
