@@ -4,31 +4,29 @@ End-to-end steps for cutting a public release of Babel.
 
 ## Prerequisites (one-time setup)
 
-### 1. Sparkle EdDSA keypair — required
+### 1. Sparkle EdDSA keypair — already set up
 
-Sparkle verifies every update with an EdDSA signature. The public key
-lives in `project.yml` (`SUPublicEDKey`); the private key stays **off
-this repo**, on the release maintainer's machine.
+The project's `SUPublicEDKey` is committed to `project.yml`. The
+matching private key lives in the current maintainer's Keychain under
+the item *"https://sparkle-project.org"* (Account: `ed25519`). If you
+inherit maintenance, you inherit that keychain entry.
 
-Sparkle's package ships a `generate_keys` tool — resolve the package
-first (`xcodebuild -resolvePackageDependencies`), then:
+**Losing the private key means losing the ability to update existing
+installs.** Export it once with `security export` into an encrypted
+backup, or keep a recent Time Machine snapshot of the login keychain.
+Rotating the key requires shipping a new `SUPublicEDKey` via a fresh
+download (users would have to reinstall), so avoid it.
+
+To re-generate from scratch (first-time only, or after a key loss):
 
 ```bash
-SPARKLE_DIR=$(find ~/Library/Developer/Xcode/DerivedData -path "*SourcePackages/checkouts/Sparkle*" -maxdepth 6 -type d | head -1)
-"$SPARKLE_DIR/bin/generate_keys"
+SPARKLE_ARTIFACTS=$(find ~/Library/Developer/Xcode/DerivedData \
+  -path "*SourcePackages/artifacts/sparkle/Sparkle/bin/generate_keys" 2>/dev/null | head -1)
+"$SPARKLE_ARTIFACTS"
 ```
 
-The first run prints the public key (base64) to stdout and stores the
-private key in your keychain under item *"https://sparkle-project.org"*.
-Keep that keychain entry — it's how you'll sign every future release.
-
-Put the public key into `project.yml`:
-
-```yaml
-SUPublicEDKey: "ABCD…=="   # 44-char base64
-```
-
-Re-run `xcodegen generate` and commit.
+Paste the printed base64 string into `project.yml` (`SUPublicEDKey`),
+re-run `xcodegen generate`, commit.
 
 ### 2. Apple Developer signing — two paths
 

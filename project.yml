@@ -55,11 +55,13 @@ targets:
         NSSpeechRecognitionUsageDescription: "Babel uses Apple's on-device SpeechAnalyzer to turn your voice into text. Audio never leaves your Mac."
         NSHumanReadableCopyright: "© 2026 Babel Contributors. MIT License."
         NSPrincipalClass: NSApplication
-        # Sparkle — auto-update feed. See docs/release.md for the release flow,
-        # EdDSA key generation, and how to populate SUPublicEDKey before cutting
-        # the first release. Until then, updates silently do nothing.
+        # Sparkle — auto-update feed. The public half of the EdDSA keypair
+        # used to verify appcast signatures; its private half lives in the
+        # release maintainer's Keychain under "https://sparkle-project.org".
+        # Every release DMG must be signed with that private key, otherwise
+        # Sparkle will reject the update. See docs/release.md.
         SUFeedURL: "https://raw.githubusercontent.com/matinsaurralde/babel/main/appcast.xml"
-        SUPublicEDKey: ""
+        SUPublicEDKey: "K4xa4RCBuEVpW5IKfZRd7n4arfcRW1O/TTn5sn8xmZ4="
         SUEnableInstallerLauncherService: false
     entitlements:
       path: Babel/Resources/Babel.entitlements
