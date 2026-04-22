@@ -8,7 +8,7 @@ struct BabelApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuBarContent()
+            MenuBarContent(updateController: appDelegate.updateController)
                 .environment(appDelegate.coordinator.state)
         } label: {
             MenuBarLabel()
@@ -78,6 +78,7 @@ private struct MenuBarLabel: View {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let coordinator = AppCoordinator()
+    let updateController = UpdateController()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)

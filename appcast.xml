@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sparkle auto-update feed for Babel.
+
+  Sparkle's verification pipeline: every <item> must be signed with the
+  project's EdDSA private key (sparkle-project.org → Security → EdDSA).
+  See docs/release.md for how to generate keys, sign a DMG, and cut a
+  release.
+
+  The feed currently contains zero items — first release ships as a
+  plain GitHub Releases download; every subsequent release flows through
+  here.
+-->
+<rss version="2.0"
+     xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Babel</title>
+    <link>https://github.com/matinsaurralde/babel</link>
+    <description>Babel — on-device dictation for macOS. Auto-update feed.</description>
+    <language>en</language>
+  </channel>
+</rss>

@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct MenuBarContent: View {
+    let updateController: UpdateController
+
     @Environment(AppState.self) private var state
     @Environment(\.openSettings) private var openSettings
     @Environment(\.openWindow) private var openWindow
@@ -122,6 +124,10 @@ struct MenuBarContent: View {
             }
             MenuButton(title: "Settings…", systemImage: "gearshape") {
                 openSettings()
+                NSApp.activate(ignoringOtherApps: true)
+            }
+            MenuButton(title: "Check for Updates…", systemImage: "arrow.down.circle") {
+                updateController.checkForUpdates()
                 NSApp.activate(ignoringOtherApps: true)
             }
             Divider().padding(.vertical, 4)

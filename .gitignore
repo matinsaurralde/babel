@@ -30,7 +30,11 @@ Carthage/Build/
 .env.*
 !.env.example
 
-## Sparkle / distribution
+## Sparkle / distribution artifacts — built, not committed
 *.dmg
 *.pkg
 release/
+
+## Sparkle appcast is committed, but generated keys / signing env files are not
+.env.release
+sparkle-private-key.*

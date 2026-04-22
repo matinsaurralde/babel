@@ -27,6 +27,9 @@ packages:
   WhisperKit:
     url: https://github.com/argmaxinc/WhisperKit
     from: "0.9.0"
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.0"
 
 targets:
   Babel:
@@ -36,6 +39,7 @@ targets:
       - path: Babel
     dependencies:
       - package: WhisperKit
+      - package: Sparkle
     info:
       path: Babel/Resources/Info.generated.plist
       properties:
@@ -51,6 +55,12 @@ targets:
         NSSpeechRecognitionUsageDescription: "Babel uses Apple's on-device SpeechAnalyzer to turn your voice into text. Audio never leaves your Mac."
         NSHumanReadableCopyright: "© 2026 Babel Contributors. MIT License."
         NSPrincipalClass: NSApplication
+        # Sparkle — auto-update feed. See docs/release.md for the release flow,
+        # EdDSA key generation, and how to populate SUPublicEDKey before cutting
+        # the first release. Until then, updates silently do nothing.
+        SUFeedURL: "https://raw.githubusercontent.com/matinsaurralde/babel/main/appcast.xml"
+        SUPublicEDKey: ""
+        SUEnableInstallerLauncherService: false
     entitlements:
       path: Babel/Resources/Babel.entitlements
       properties:
