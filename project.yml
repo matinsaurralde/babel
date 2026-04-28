@@ -73,3 +73,17 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.babel.app
         PRODUCT_NAME: Babel
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+  BabelTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: BabelTests
+    dependencies:
+      - target: Babel
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.babel.app.tests
+        SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: YES
+        # Inherit Babel's deployment target / strict-concurrency settings.

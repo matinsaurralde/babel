@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build & test on macOS 26
+    # macos-26 image is rolled out by GitHub gradually; falls back to macos-latest
+    # if the older runner is the only thing available — adjust when 26 is GA.
+    runs-on: macos-26
+    timeout-minutes: 35
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          swift --version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project Babel.xcodeproj \
+            -scheme Babel
+
+      - name: Build & run unit tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Babel.xcodeproj \
+            -scheme Babel \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcbeautify --renderer github-actions || (
+              # Fall back if xcbeautify isn't preinstalled on the runner.
+              xcodebuild test \
+                -project Babel.xcodeproj \
+                -scheme Babel \
+                -configuration Debug \
+                -destination 'platform=macOS' \
+                -skipPackagePluginValidation \
+                -skipMacroValidation \
+                CODE_SIGN_IDENTITY="-" \
+                CODE_SIGNING_REQUIRED=NO
+            )

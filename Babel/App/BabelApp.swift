@@ -81,6 +81,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let updateController = UpdateController()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Skip the live app machinery when XCTest is hosting us — unit tests
+        // shouldn't trigger CGEventTap installation, Sparkle network calls,
+        // or AVAudioEngine mic acquisition.
+        if NSClassFromString("XCTestCase") != nil {
+            return
+        }
         NSApp.setActivationPolicy(.accessory)
         coordinator.start()
     }

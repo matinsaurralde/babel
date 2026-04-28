@@ -263,33 +263,3 @@ final class SpeechAnalyzerEngine: TranscriptionEngine {
 private final class ConvertOnce: @unchecked Sendable {
     var done = false
 }
-
-/// Thread-safe buffer for progressive transcription state. Holds every
-/// committed final segment plus the current volatile partial. `snapshot()`
-/// returns the concatenation of both, which is what the UI shows.
-private final class TranscriptAccumulator: @unchecked Sendable {
-    private let lock = NSLock()
-    private var finals: [String] = []
-    private var partial: String = ""
-
-    func appendFinal(_ text: String) {
-        lock.lock(); defer { lock.unlock() }
-        let trimmed = text.trimmingCharacters(in: .whitespaces)
-        if !trimmed.isEmpty {
-            finals.append(trimmed)
-        }
-        partial = ""
-    }
-
-    func setPartial(_ text: String) {
-        lock.lock(); defer { lock.unlock() }
-        partial = text.trimmingCharacters(in: .whitespaces)
-    }
-
-    func snapshot() -> String {
-        lock.lock(); defer { lock.unlock() }
-        var parts = finals
-        if !partial.isEmpty { parts.append(partial) }
-        return parts.joined(separator: " ")
-    }
-}
