@@ -17,6 +17,7 @@ final class AppCoordinator {
     private let audio = AudioCapture()
     private var sessionTask: Task<Void, Never>?
     private var installRetryTask: Task<Void, Never>?
+    private var defaultsObserver: NSObjectProtocol?
 
     // Keep one instance per engine so loaded models / warm analyzers survive
     // across sessions. The WhisperKit instance is cheap to create — actual
@@ -43,11 +44,30 @@ final class AppCoordinator {
                 }
             }
         }
+
+        // Rebind the hotkey when the user changes the binding in Settings.
+        defaultsObserver = NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: UserDefaults.standard,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.refreshHotkeyBindingIfChanged() }
+        }
+    }
+
+    private func refreshHotkeyBindingIfChanged() {
+        let current = HotkeyBinding.current
+        guard hotkey?.binding != current else { return }
+        Self.log.info("hotkey binding changed → \(current.displayName, privacy: .public)")
+        hotkey?.stop()
+        hotkey = nil
+        installHotkey()
     }
 
     private func installHotkey() {
         guard hotkey == nil else { return }
         let hk = GlobalHotkey(
+            binding: HotkeyBinding.current,
             onPress: { [weak self] in self?.handlePress() },
             onRelease: { [weak self] in self?.handleRelease() }
         )

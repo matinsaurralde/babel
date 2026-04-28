@@ -139,11 +139,26 @@ private struct ModelsTab: View {
 }
 
 private struct ShortcutsTab: View {
+    @AppStorage(HotkeyBinding.userDefaultsKey) private var hotkeyRaw: String = HotkeyBinding.default.rawValue
+
     var body: some View {
         Form {
-            Section("Global hotkey") {
-                LabeledContent("Push-to-hold", value: "Right Option")
-                Text("Rebinding will arrive in v1.0. The hotkey captures Right Option anywhere on macOS — release to insert the transcript into the frontmost app.")
+            Section("Push-to-hold key") {
+                Picker("Hold to record", selection: $hotkeyRaw) {
+                    Section("Modifier keys") {
+                        ForEach(HotkeyBinding.modifierBindings) { binding in
+                            Text(binding.displayName).tag(binding.rawValue)
+                        }
+                    }
+                    Section("Function keys") {
+                        ForEach(HotkeyBinding.functionKeyBindings) { binding in
+                            Text(binding.displayName).tag(binding.rawValue)
+                        }
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Text("Hold the chosen key, speak, release. Babel watches keys that are rarely used elsewhere — modifiers held alone (no chord) and the F13–F19 row — so the gesture is unambiguous.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

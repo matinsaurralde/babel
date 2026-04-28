@@ -2,23 +2,21 @@ import AppKit
 import CoreGraphics
 import OSLog
 
-/// Device-level bit mask for the right Option key (NX_DEVICERALTKEYMASK).
-/// Stays set in `CGEvent.flags.rawValue` while right-Option is physically held.
-private let kRightOptionDeviceMask: UInt64 = 0x40
-/// Virtual keycode for the right Option key.
-private let kRightOptionKeyCode: Int64 = 61
-
 enum GlobalHotkeyError: Error {
     case tapCreationFailed
 }
 
-/// Global push-to-hold hotkey driven by CGEventTap on the main runloop.
-/// Uses the HID-layer tap so events are caught at the hardware layer before
-/// session-level processing — more reliable than `cgSessionEventTap` on
-/// macOS 26 when Input Monitoring is the only active privacy grant.
+/// Global push-to-hold hotkey driven by `CGEventTap` on the main runloop.
+/// The watched key is configurable via `HotkeyBinding`; modifiers use
+/// `flagsChanged` events with device-level bit checks, function keys (F13–F19)
+/// use `keyDown`/`keyUp`.
+///
+/// Callback bodies are dispatched on the main actor since the tap is scheduled
+/// on `CFRunLoopGetMain()`.
 final class GlobalHotkey: @unchecked Sendable {
     private static let log = Logger(subsystem: "com.babel.app", category: "hotkey")
 
+    let binding: HotkeyBinding
     private let onPress: @MainActor () -> Void
     private let onRelease: @MainActor () -> Void
 
@@ -27,23 +25,22 @@ final class GlobalHotkey: @unchecked Sendable {
     private var pressed = false
 
     init(
+        binding: HotkeyBinding,
         onPress: @escaping @MainActor () -> Void,
         onRelease: @escaping @MainActor () -> Void
     ) {
+        self.binding = binding
         self.onPress = onPress
         self.onRelease = onRelease
     }
 
     @MainActor
     func start() throws {
-        let mask: CGEventMask = 1 << CGEventType.flagsChanged.rawValue
-        let refcon = Unmanaged.passUnretained(self).toOpaque()
+        let mask: CGEventMask = binding.isModifier
+            ? 1 << CGEventType.flagsChanged.rawValue
+            : (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
 
-        // Session-level tap with `.defaultTap`. On macOS 26, `.listenOnly` taps
-        // sometimes get created but never receive events — `.defaultTap` returns
-        // the event unmodified from the callback and has proven more reliable.
-        // HID-layer tap (`.cghidEventTap`) requires Accessibility; we stick to
-        // session so Input Monitoring alone is enough to install us.
+        let refcon = Unmanaged.passUnretained(self).toOpaque()
         guard let tap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
@@ -55,14 +52,13 @@ final class GlobalHotkey: @unchecked Sendable {
             Self.log.error("CGEvent.tapCreate returned nil — Input Monitoring not granted?")
             throw GlobalHotkeyError.tapCreationFailed
         }
-        Self.log.info("CGEvent.tapCreate(cgSessionEventTap, defaultTap) succeeded")
+        Self.log.info("CGEvent.tapCreate succeeded for \(self.binding.displayName, privacy: .public)")
 
         self.eventTap = tap
         let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
         self.runLoopSource = source
         CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
-        Self.log.info("tap enabled, runloop source added")
     }
 
     @MainActor
@@ -75,7 +71,22 @@ final class GlobalHotkey: @unchecked Sendable {
         }
         eventTap = nil
         runLoopSource = nil
-        pressed = false
+        if pressed {
+            // Synthesize a release so callers don't get stuck in `.listening`
+            // if the user happened to be holding the key while we tore down.
+            pressed = false
+            onRelease()
+        }
+    }
+
+    /// If the system disabled the tap (e.g., after long sleep), turn it back on.
+    @MainActor
+    func reenableIfNeeded() {
+        guard let tap = eventTap else { return }
+        if !CGEvent.tapIsEnabled(tap: tap) {
+            Self.log.info("tap was disabled, re-enabling")
+            CGEvent.tapEnable(tap: tap, enable: true)
+        }
     }
 
     private static let tapCallback: CGEventTapCallBack = { _, type, event, userInfo in
@@ -84,10 +95,6 @@ final class GlobalHotkey: @unchecked Sendable {
         let keycode = event.getIntegerValueField(.keyboardEventKeycode)
         let flagsRaw = event.flags.rawValue
         let rawType = type.rawValue
-
-        // NSLog — cheap, appears in `log stream` without needing a Logger per-callsite.
-        // We log every event the tap sees so permission/keycode issues are diagnosable.
-        NSLog("[Babel.tap] type=%u keycode=%lld flags=0x%llx", rawType, keycode, flagsRaw)
 
         DispatchQueue.main.async {
             MainActor.assumeIsolated {
@@ -107,18 +114,38 @@ final class GlobalHotkey: @unchecked Sendable {
             }
             return
         }
-        guard type == .flagsChanged else { return }
-        guard keycode == kRightOptionKeyCode else { return }
+        guard keycode == binding.keycode else { return }
 
-        let nowDown = (flagsRaw & kRightOptionDeviceMask) != 0
-        if nowDown && !pressed {
-            pressed = true
-            Self.log.info("press")
-            onPress()
-        } else if !nowDown && pressed {
-            pressed = false
-            Self.log.info("release")
-            onRelease()
+        if binding.isModifier {
+            guard type == .flagsChanged, let mask = binding.deviceMask else { return }
+            let nowDown = (flagsRaw & mask) != 0
+            if nowDown && !pressed {
+                pressed = true
+                Self.log.info("press")
+                onPress()
+            } else if !nowDown && pressed {
+                pressed = false
+                Self.log.info("release")
+                onRelease()
+            }
+        } else {
+            // Function key: discrete keyDown / keyUp. Dedupe autorepeat.
+            switch type {
+            case .keyDown:
+                if !pressed {
+                    pressed = true
+                    Self.log.info("press")
+                    onPress()
+                }
+            case .keyUp:
+                if pressed {
+                    pressed = false
+                    Self.log.info("release")
+                    onRelease()
+                }
+            default:
+                return
+            }
         }
     }
 }
