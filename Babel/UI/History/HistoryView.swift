@@ -1,43 +1,73 @@
 import AppKit
 import SwiftData
 import SwiftUI
-
+import UniformTypeIdentifiers
 
 struct HistoryView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: [SortDescriptor(\Dictation.createdAt, order: .reverse)])
-    private var dictations: [Dictation]
+    private var allDictations: [Dictation]
 
     @State private var selection: Dictation.ID?
+    @State private var searchText: String = ""
+
+    private var dictations: [Dictation] {
+        guard !searchText.isEmpty else { return allDictations }
+        return allDictations.filter {
+            $0.finalText.localizedCaseInsensitiveContains(searchText)
+                || $0.engineName.localizedCaseInsensitiveContains(searchText)
+                || $0.mode.displayName.localizedCaseInsensitiveContains(searchText)
+        }
+    }
 
     var body: some View {
         NavigationSplitView {
-            if dictations.isEmpty {
-                emptyState
-                    .frame(minWidth: 260)
-            } else {
-                List(selection: $selection) {
-                    ForEach(dictations) { dictation in
-                        HistoryRow(dictation: dictation)
-                            .tag(dictation.id)
-                            .contextMenu {
-                                Button("Copy") { copy(dictation) }
-                                Divider()
-                                Button("Delete", role: .destructive) { delete(dictation) }
-                            }
+            Group {
+                if allDictations.isEmpty {
+                    emptyState
+                } else if dictations.isEmpty {
+                    ContentUnavailableView.search
+                } else {
+                    List(selection: $selection) {
+                        ForEach(dictations) { dictation in
+                            HistoryRow(dictation: dictation)
+                                .tag(dictation.id)
+                                .contextMenu {
+                                    Button("Copy") { copy(dictation) }
+                                    Button("Export…") { export(dictation) }
+                                    Divider()
+                                    Button("Delete", role: .destructive) { delete(dictation) }
+                                }
+                        }
                     }
+                    .listStyle(.inset)
                 }
-                .listStyle(.inset)
-                .frame(minWidth: 260)
             }
+            .frame(minWidth: 280)
+            .searchable(text: $searchText, placement: .sidebar, prompt: "Search transcripts")
         } detail: {
             if let selected = dictations.first(where: { $0.id == selection }) {
-                HistoryDetailView(dictation: selected, onCopy: copy, onDelete: delete)
+                HistoryDetailView(
+                    dictation: selected,
+                    onCopy: copy,
+                    onExport: export,
+                    onDelete: delete
+                )
+            } else if !allDictations.isEmpty {
+                ContentUnavailableView(
+                    "Pick a dictation",
+                    systemImage: "waveform",
+                    description: Text("Select an entry on the left to see its details.")
+                )
             } else {
-                ContentUnavailableView("Pick a dictation", systemImage: "waveform", description: Text("Your history lives here. Select an entry to see its details."))
+                ContentUnavailableView(
+                    "No dictations yet",
+                    systemImage: "waveform",
+                    description: Text("Hold the push-to-hold key to record your first one.")
+                )
             }
         }
-        .frame(minWidth: 640, minHeight: 420)
+        .frame(minWidth: 720, minHeight: 460)
         .navigationTitle("Babel History")
     }
 
@@ -48,7 +78,7 @@ struct HistoryView: View {
                 .foregroundStyle(.tint)
             Text("No dictations yet")
                 .font(.headline)
-            Text("Hold Right Option anywhere on macOS to record your first one.")
+            Text("Hold the push-to-hold key anywhere on macOS to record your first one.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
@@ -65,6 +95,46 @@ struct HistoryView: View {
     private func delete(_ dictation: Dictation) {
         modelContext.delete(dictation)
         try? modelContext.save()
+    }
+
+    private func export(_ dictation: Dictation) {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.plainText, UTType("net.daringfireball.markdown") ?? .plainText]
+        panel.canCreateDirectories = true
+        panel.nameFieldStringValue = defaultExportFilename(for: dictation)
+        panel.title = "Export transcript"
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        let body = exportBody(for: dictation, asMarkdown: url.pathExtension.lowercased() == "md")
+        do {
+            try body.data(using: .utf8)?.write(to: url, options: .atomic)
+        } catch {
+            NSAlert(error: error).runModal()
+        }
+    }
+
+    private func defaultExportFilename(for d: Dictation) -> String {
+        let stamp = ISO8601DateFormatter().string(from: d.createdAt)
+            .replacingOccurrences(of: ":", with: "-")
+        return "babel-\(stamp).txt"
+    }
+
+    private func exportBody(for d: Dictation, asMarkdown: Bool) -> String {
+        if asMarkdown {
+            return """
+            # Babel transcript
+
+            - Mode: **\(d.mode.displayName)**
+            - Engine: \(d.engineName)
+            - Recorded: \(d.createdAt.formatted(date: .abbreviated, time: .standard))
+            - Duration: \(String(format: "%.1f s", d.durationSeconds))
+
+            ---
+
+            \(d.finalText)
+            """
+        }
+        return d.finalText
     }
 }
 
@@ -96,6 +166,7 @@ private struct HistoryRow: View {
 private struct HistoryDetailView: View {
     let dictation: Dictation
     let onCopy: (Dictation) -> Void
+    let onExport: (Dictation) -> Void
     let onDelete: (Dictation) -> Void
 
     var body: some View {
@@ -115,6 +186,13 @@ private struct HistoryDetailView: View {
                     Label("Copy", systemImage: "doc.on.doc")
                 }
                 .help("Copy the transcript to the clipboard")
+
+                Button {
+                    onExport(dictation)
+                } label: {
+                    Label("Export", systemImage: "square.and.arrow.up")
+                }
+                .help("Save the transcript as a .txt or .md file")
 
                 Button(role: .destructive) {
                     onDelete(dictation)
