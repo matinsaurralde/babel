@@ -37,6 +37,9 @@ enum SessionPhase: Equatable, Sendable {
     case idle
     case listening
     case processing
+    /// The optional LLM cleanup step that runs after transcription if
+    /// the user has enabled Ollama post-processing.
+    case polishing
     case inserting
     /// The focused context (e.g. Terminal with Secure Keyboard Entry or a
     /// password field) blocks programmatic text entry. We leave the transcript
@@ -49,6 +52,7 @@ enum SessionPhase: Equatable, Sendable {
         case .idle: "Ready"
         case .listening: "Listening…"
         case .processing: "Processing…"
+        case .polishing: "Polishing…"
         case .inserting: "Inserting…"
         case .clipboardFallback: "On clipboard — ⌘V"
         case .error(let msg): "Error: \(msg)"

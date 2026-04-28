@@ -30,6 +30,7 @@ struct PillView: View {
         switch state.phase {
         case .listening: .blue
         case .processing: .orange
+        case .polishing: .purple
         case .inserting: .green
         case .clipboardFallback: .yellow
         case .error: .red

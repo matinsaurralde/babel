@@ -25,6 +25,7 @@ final class AppCoordinator {
     // model download only happens inside `transcribe(audio:)` on first call.
     private let speechAnalyzerEngine = SpeechAnalyzerEngine()
     private let whisperKitEngine = WhisperKitEngine()
+    private let llmProcessor: LLMProcessor = OllamaProcessor()
 
     func start() {
         Self.log.info("permissions: mic=\(String(describing: Permissions.status(for: .microphone)), privacy: .public) speech=\(String(describing: Permissions.status(for: .speechRecognition)), privacy: .public) accessibility=\(String(describing: Permissions.status(for: .accessibility)), privacy: .public) inputMonitoring=\(String(describing: Permissions.status(for: .inputMonitoring)), privacy: .public)")
@@ -223,8 +224,20 @@ final class AppCoordinator {
             return
         }
 
+        var finalText = state.lastFinalTranscript
+
+        if shouldPostProcess(mode: mode), !finalText.isEmpty {
+            state.phase = .polishing
+            do {
+                finalText = try await llmProcessor.process(transcript: finalText)
+                Self.log.info("post-processing applied (\(finalText.count) chars)")
+            } catch {
+                Self.log.warning("post-processing failed, falling back to raw transcript: \(String(describing: error), privacy: .public)")
+            }
+        }
+
         state.phase = .inserting
-        let finalText = state.lastFinalTranscript
+        state.lastFinalTranscript = finalText
         let outcome = TextInserter.insert(finalText)
         Self.log.info("insertion outcome: \(String(describing: outcome), privacy: .public) front=\(frontmostBundleID ?? "(unknown)", privacy: .public)")
 
@@ -257,6 +270,16 @@ final class AppCoordinator {
             return speechAnalyzerEngine
         case .accurate:
             return whisperKitEngine
+        }
+    }
+
+    /// Whether the current mode + user preference allow LLM post-processing.
+    /// Fast intentionally skips it — the whole point of Fast is no extra hops.
+    private func shouldPostProcess(mode: BabelMode) -> Bool {
+        guard OllamaSettings.isEnabled else { return false }
+        switch mode {
+        case .fast: return false
+        case .balanced, .accurate: return true
         }
     }
 }

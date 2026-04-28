@@ -5,7 +5,7 @@ struct SettingsRootView: View {
     @State private var selected: Tab = Permissions.allGranted() ? .general : .permissions
 
     enum Tab: String, Hashable {
-        case permissions, general, models, shortcuts, about
+        case permissions, general, models, shortcuts, llm, about
     }
 
     var body: some View {
@@ -25,6 +25,10 @@ struct SettingsRootView: View {
             ShortcutsTab()
                 .tabItem { Label("Shortcuts", systemImage: "keyboard") }
                 .tag(Tab.shortcuts)
+
+            LLMTab()
+                .tabItem { Label("LLM", systemImage: "wand.and.stars") }
+                .tag(Tab.llm)
 
             AboutTab()
                 .tabItem { Label("About", systemImage: "info.circle") }
@@ -192,6 +196,94 @@ private struct ShortcutsTab: View {
         }
         .formStyle(.grouped)
         .padding()
+    }
+}
+
+private struct LLMTab: View {
+    @AppStorage(OllamaSettings.enabledKey) private var enabled: Bool = false
+    @AppStorage(OllamaSettings.endpointKey) private var endpoint: String = OllamaSettings.defaultEndpoint
+    @AppStorage(OllamaSettings.modelKey) private var model: String = OllamaSettings.defaultModel
+    @AppStorage(OllamaSettings.systemPromptKey) private var systemPrompt: String = OllamaSettings.defaultSystemPrompt
+    @AppStorage(OllamaSettings.vocabularyKey) private var vocabulary: String = ""
+
+    @State private var probeStatus: String?
+    @State private var probing = false
+
+    private let processor = OllamaProcessor()
+
+    var body: some View {
+        Form {
+            Section("Local LLM cleanup") {
+                Toggle("Apply cleanup to Balanced and Accurate transcripts", isOn: $enabled)
+                Text("Pipes the transcript through a locally running Ollama instance to fix grammar and drop filler words. Fast mode is never post-processed.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Server") {
+                TextField("Endpoint", text: $endpoint, prompt: Text(OllamaSettings.defaultEndpoint))
+                    .textFieldStyle(.roundedBorder)
+                TextField("Model", text: $model, prompt: Text(OllamaSettings.defaultModel))
+                    .textFieldStyle(.roundedBorder)
+
+                HStack {
+                    Button(probing ? "Testing…" : "Test connection") {
+                        Task { await testConnection() }
+                    }
+                    .disabled(probing)
+                    Spacer()
+                    if let status = probeStatus {
+                        Text(status).font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+
+                Text("Babel doesn't install Ollama. Make sure the daemon is running and the model is pulled, e.g. `ollama pull \(model)`.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("System prompt") {
+                TextEditor(text: $systemPrompt)
+                    .font(.system(.callout, design: .monospaced))
+                    .frame(minHeight: 140)
+                    .scrollContentBackground(.hidden)
+                    .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.05)))
+
+                Button("Reset to default") {
+                    systemPrompt = OllamaSettings.defaultSystemPrompt
+                }
+            }
+
+            Section("Vocabulary") {
+                TextEditor(text: $vocabulary)
+                    .font(.system(.callout, design: .monospaced))
+                    .frame(minHeight: 80)
+                    .scrollContentBackground(.hidden)
+                    .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.05)))
+                Text("Free-form list of terms the model should preserve verbatim — brand names, product names, technical jargon. Appended to the system prompt as a hint.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+        .padding()
+    }
+
+    private func testConnection() async {
+        probing = true
+        defer { probing = false }
+        do {
+            let models = try await processor.reachableModels()
+            if models.contains(where: { $0 == model || $0.hasPrefix(model + ":") }) {
+                probeStatus = "Connected — model available."
+            } else if models.isEmpty {
+                probeStatus = "Connected — no models pulled yet."
+            } else {
+                probeStatus = "Connected — but '\(model)' isn't pulled. Available: \(models.joined(separator: ", "))."
+            }
+        } catch {
+            probeStatus = "Couldn't reach Ollama: \(error.localizedDescription)"
+        }
     }
 }
 
