@@ -68,10 +68,7 @@ final class PillWindowController {
 
     private func position() {
         guard let panel, let screen = NSScreen.main else { return }
-        let visible = screen.visibleFrame
-        let size = panel.frame.size
-        let x = visible.midX - size.width / 2
-        let y = visible.minY + 80
-        panel.setFrameOrigin(NSPoint(x: x, y: y))
+        let origin = PillPosition.current.origin(for: panel.frame.size, on: screen)
+        panel.setFrameOrigin(origin)
     }
 }

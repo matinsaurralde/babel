@@ -42,6 +42,7 @@ private struct GeneralTab: View {
     @State private var installedLocales: [Locale] = []
     @State private var launchAtLogin: Bool = LaunchAtLogin.isEnabled
     @AppStorage(SessionSounds.userDefaultsKey) private var soundsEnabled: Bool = false
+    @AppStorage(PillPosition.userDefaultsKey) private var pillPosition: String = PillPosition.default.rawValue
 
     var body: some View {
         @Bindable var state = state
@@ -60,6 +61,17 @@ private struct GeneralTab: View {
             Section("Feedback") {
                 Toggle("Play a sound when I start and stop dictating", isOn: $soundsEnabled)
                 Text("Subtle built-in macOS sounds (Tink / Pop). Useful if you'd rather keep your eyes on the app you're typing into than on the pill.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Pill position") {
+                Picker("Show the pill at", selection: $pillPosition) {
+                    ForEach(PillPosition.allCases) { position in
+                        Text(position.displayName).tag(position.rawValue)
+                    }
+                }
+                Text("Where the Liquid Glass pill floats while you're dictating. Takes effect on the next session.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
