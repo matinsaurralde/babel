@@ -18,6 +18,7 @@ final class AppCoordinator {
     private var sessionTask: Task<Void, Never>?
     private var installRetryTask: Task<Void, Never>?
     private var defaultsObserver: NSObjectProtocol?
+    private var wakeObserver: NSObjectProtocol?
 
     // Keep one instance per engine so loaded models / warm analyzers survive
     // across sessions. The WhisperKit instance is cheap to create — actual
@@ -52,6 +53,25 @@ final class AppCoordinator {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in self?.refreshHotkeyBindingIfChanged() }
+        }
+
+        // CGEventTap can be silently disabled across sleep on some macOS
+        // releases. Re-enable on wake; if the tap is gone entirely, rebuild it.
+        wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.handleSystemDidWake() }
+        }
+    }
+
+    private func handleSystemDidWake() {
+        Self.log.info("system woke; verifying hotkey")
+        if let hk = hotkey {
+            hk.reenableIfNeeded()
+        } else {
+            installHotkey()
         }
     }
 
