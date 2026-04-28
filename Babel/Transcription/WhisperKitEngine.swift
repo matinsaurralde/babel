@@ -59,7 +59,15 @@ final class WhisperKitEngine: TranscriptionEngine, @unchecked Sendable {
     ) async throws {
         let choice = WhisperModelChoice.current
         log.info("run: begin (model=\(choice.modelID, privacy: .public))")
-        continuation.yield(.partial("Loading model…"))
+
+        // Decide whether we're going to download or just load: WhisperKit
+        // stashes models under ~/Documents/huggingface/.../<modelID>. If the
+        // folder already exists, the first run penalty is gone.
+        if modelIsCached(choice.modelID) {
+            continuation.yield(.partial("Loading model…"))
+        } else {
+            continuation.yield(.partial("Downloading \(choice.displayName) (\(choice.sizeApprox))…"))
+        }
 
         let kit: WhisperKit
         do {
@@ -96,6 +104,22 @@ final class WhisperKitEngine: TranscriptionEngine, @unchecked Sendable {
             .joined(separator: " ")
         log.info("run: transcribed (\(text.count) chars)")
         continuation.yield(.final(text))
+    }
+
+    /// True when WhisperKit's cached copy of `modelID` already exists on disk.
+    /// Used to decide whether the user sees "Loading…" or
+    /// "Downloading…" while the engine warms up.
+    private static func modelIsCached(_ modelID: String) -> Bool {
+        guard
+            let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        else { return false }
+        let path = docs
+            .appendingPathComponent("huggingface")
+            .appendingPathComponent("models")
+            .appendingPathComponent("argmaxinc")
+            .appendingPathComponent("whisperkit-coreml")
+            .appendingPathComponent(modelID)
+        return FileManager.default.fileExists(atPath: path.path)
     }
 }
 
