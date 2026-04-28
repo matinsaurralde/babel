@@ -14,10 +14,9 @@ import OSLog
 /// - The loaded `WhisperKit` instance is cached across sessions so we don't
 ///   pay the cold-start cost every dictation.
 final class WhisperKitEngine: TranscriptionEngine, @unchecked Sendable {
-    let displayName = "Whisper large-v3-turbo"
-
-    /// Default model. Keep in sync with `ModelsTab` copy.
-    static let modelName = "openai_whisper-large-v3-v20240930_turbo"
+    var displayName: String {
+        "Whisper " + WhisperModelChoice.current.displayName
+    }
 
     private static let log = Logger(subsystem: "com.babel.app", category: "engine.whisperkit")
     private let cache = WhisperKitCache()
@@ -58,12 +57,13 @@ final class WhisperKitEngine: TranscriptionEngine, @unchecked Sendable {
         cache: WhisperKitCache,
         continuation: AsyncThrowingStream<TranscriptionUpdate, Error>.Continuation
     ) async throws {
-        log.info("run: begin")
+        let choice = WhisperModelChoice.current
+        log.info("run: begin (model=\(choice.modelID, privacy: .public))")
         continuation.yield(.partial("Loading model…"))
 
         let kit: WhisperKit
         do {
-            kit = try await cache.load(modelName: modelName)
+            kit = try await cache.load(modelName: choice.modelID)
         } catch {
             throw EngineError.modelLoadFailed(error)
         }
@@ -102,12 +102,14 @@ final class WhisperKitEngine: TranscriptionEngine, @unchecked Sendable {
 /// Lazy cache for a single `WhisperKit` instance. The load is expensive — model
 /// decompression + CoreML graph construction — so we keep the loaded instance
 /// alive across dictation sessions. Actor-isolated so concurrent first-dictations
-/// don't try to load twice.
+/// don't try to load twice. Invalidates and reloads when the user picks a
+/// different model in Settings.
 private actor WhisperKitCache {
     private var instance: WhisperKit?
+    private var loadedModelName: String?
 
     func load(modelName: String) async throws -> WhisperKit {
-        if let instance { return instance }
+        if let instance, loadedModelName == modelName { return instance }
         let config = WhisperKitConfig(
             model: modelName,
             verbose: false,
@@ -117,6 +119,7 @@ private actor WhisperKitCache {
         )
         let kit = try await WhisperKit(config)
         instance = kit
+        loadedModelName = modelName
         return kit
     }
 }

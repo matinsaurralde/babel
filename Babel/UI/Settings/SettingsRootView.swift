@@ -126,16 +126,31 @@ private struct GeneralTab: View {
 }
 
 private struct ModelsTab: View {
+    @AppStorage(WhisperModelChoice.userDefaultsKey) private var whisperModel: String = WhisperModelChoice.default.rawValue
+
     var body: some View {
         Form {
             Section("Transcription engine") {
                 LabeledContent("Fast", value: "Apple SpeechAnalyzer")
                 LabeledContent("Balanced", value: "Apple SpeechAnalyzer")
-                LabeledContent("Accurate", value: "Whisper large-v3-turbo (WhisperKit)")
+                LabeledContent("Accurate", value: "Whisper via WhisperKit")
             }
 
-            Section("Accurate mode — first run") {
-                Text("The Whisper large-v3-turbo model (~1.5 GB) is downloaded from Hugging Face on first use and cached under ~/Documents/huggingface. Subsequent sessions load from disk.")
+            Section("Accurate mode — Whisper variant") {
+                Picker("Model", selection: $whisperModel) {
+                    ForEach(WhisperModelChoice.allCases) { choice in
+                        Text("\(choice.displayName) (\(choice.sizeApprox))")
+                            .tag(choice.rawValue)
+                    }
+                }
+
+                if let current = WhisperModelChoice(rawValue: whisperModel) {
+                    Text(current.subtitle)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
+                Text("Downloaded from Hugging Face on first use, cached under ~/Documents/huggingface. Switching models triggers a fresh download for the new one.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
